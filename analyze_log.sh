@@ -38,7 +38,11 @@ get_commit_info()
         return 1
     fi
 
-    #echo "git blame --line-porcelain -L$LINE,$LINE $NORMFILE"
+    if grep -q $NORMFILE ./ignore.list.txt ; then
+        echo "Ignore $NORMFILE (see ./ignore.list.txt)"
+        return 1
+    fi
+
     ( cd $REPO && git blame --line-porcelain -L$LINE,$LINE $NORMFILE) >$0.tmp_porc
     COMMIT=$(cat $0.tmp_porc | head -1 | cut -d" " -f1)
     COMMITDATE=$( cd $REPO && git show -s --format=%ci $COMMIT)
