@@ -20,7 +20,7 @@ for i in output/*.err ; do
     cat $i | ./helpers/log_distinct_filter.sh >state/$EN
 done
 
-./analize_log.sh
+./analyze_log.sh || fatal
 
 tail -n 10 output/scan-build.* | grep "to examine bug reports" && set_error scan-build-found-bug
 

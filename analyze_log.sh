@@ -33,6 +33,7 @@ print_warning()
 
 get_commit_info()
 {
+    [ -n "$NORMFILE" ] || return 1
     if [ -z "$LINE" ] ; then
         echo "Empty line for $NORMFILE" >&2
         return 1
@@ -43,6 +44,7 @@ get_commit_info()
         return 1
     fi
 
+    [ -n "$VERBOSE" ] && echo "git blame --line-porcelain -L$LINE,$LINE $NORMFILE ..."
     ( cd $REPO && git blame --line-porcelain -L$LINE,$LINE $NORMFILE) >$0.tmp_porc
     COMMIT=$(cat $0.tmp_porc | head -1 | cut -d" " -f1)
     COMMITDATE=$( cd $REPO && git show -s --format=%ci $COMMIT)
@@ -62,7 +64,7 @@ while read FILE LINE COMMENT; do
 
     # hack: search for name only
     # TODO: нужно максимальное совпадение
-    NORMFILE=$(grep "/$(basename $FILE)$" $0.files | head -n1)
+    NORMFILE=$(grep "/$(basename $FILE)$" $0.files | head -n1) #"
     if [ -z "$NORMFILE" ] ; then
         echo "Can't find file $FILE" >&2
         continue
@@ -99,15 +101,14 @@ while read NORMFILE FILE LINE COMMENT; do
         date >>$AUTHORSDIR/$AUTHORMAIL || exit
     fi
 
-    #MAILTO=lav@etersoft
-    #mutt -S ""
-
     print_warning >> $AUTHORSDIR/$AUTHORMAIL
 done
 }
 
 NUM="[0-9][0-9]*"
-( cd $REPO && find -type f ) >$0.files
+
+echo "Create files cache ..."
+( cd $REPO && find -type f -not -name ".*" ) >$0.files
 
 # TODO: we failed with various warning descriptions
 echo "Get all unique warnings..."
@@ -116,5 +117,7 @@ for engine in $ENGINES ; do
 	echo "    * $engine ..."
 	cat output/$engine.err | egrep "^[^ ]*\.(c|cc|cpp|h):$NUM[: ]" | sed -e "s!\(.c\|.cc\|.cpp\|.h\):\($NUM\): !\1 \2 !g" -e "s!\(.c\|-cc\|.cpp\|.h\):\($NUM\):$NUM: !\1 \2 !g" | sort -u >> $0.warnings
 done
+echo "Parsing ..."
 cat $0.warnings | norm_warnings | tee $0.normwarnings | parse_input
 #rm -f $0.warnings
+true
