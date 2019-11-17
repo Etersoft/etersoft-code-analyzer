@@ -11,12 +11,12 @@ set_error()
 # build and check with all engines
 mkdir -p output || fatal
 for EN in $ENGINES ; do
-    engines/$EN 2>output/$EN.err >output/$EN.log || set_error $EN
+    engines/$EN.sh 2>output/$EN.err >output/$EN.log || set_error $EN
 done
 
 mkdir -p state || fatal
 for i in output/*.err ; do
-    EN=$(basename $i .sh)
+    EN=$(basename $i)
     cat $i | ./helpers/log_distinct_filter.sh >state/$EN
 done
 
