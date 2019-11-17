@@ -16,9 +16,7 @@ NUMPROC=8
 
 AUTHORSDIR=pera
 
-# FIXME: common list
-# output/*.err, but we need an ordered list
-ERRFILES="output/gcc-build.err output/clang-build.err output/scan-build.err output/cppcheck.err"
+ENGINES="gcc-build cppcheck clang-build scan-build"
 
 CONFIGURECMD="./configure --without-mingw"
 

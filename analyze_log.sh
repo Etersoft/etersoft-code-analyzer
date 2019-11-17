@@ -5,20 +5,21 @@
 rm -rf $AUTHORSDIR
 mkdir -p $AUTHORSDIR
 
+
 print_warning()
 {
     echo
     echo "***"
 
-    for ERRFILE in $ERRFILES ; do
+    for engine in $ENGINES ; do
+	ERRFILE=output/$engine.err
         # we found our warning in some file
         if grep -q "$FILE.*:$LINE" $ERRFILE ; then
-		CHECKER="$(basename $ERRFILE .err)"
-        	echo "Detected by $CHECKER checker. The warning is introduced in $COMMIT ($COMMITDATE), file $NORMFILE, line $LINE"
+        	echo "Detected by $engine checker. The warning is introduced in $COMMIT ($COMMITDATE), file $NORMFILE, line $LINE"
         	echo "$COMMENT"
         	echo
         	# show only one line for cppcheck output
-        	if [ $CHECKER = "cppcheck" ] ; then
+        	if [ "$ENGINE" = "cppcheck" ] ; then
         		# -m1 means return the first match
         		grep -m1 "$FILE.*:$LINE" $ERRFILE
         	else
@@ -105,7 +106,11 @@ NUM="[0-9][0-9]*"
 ( cd $REPO && find -type f ) >$0.files
 
 # TODO: we failed with various warning descriptions
-# get all unique warnings
-cat $ERRFILES | egrep "^[^ ]*\.(cpp|h):$NUM[: ]" | sed -e "s!\(.cpp\|.h\):\($NUM\): !\1 \2 !g" -e "s!\(.cpp\|.h\):\($NUM\):$NUM: !\1 \2 !g" | sort -u > $0.warnings
+echo "Get all unique warnings..."
+rm -f $0.warnings
+for engine in $ENGINES ; do
+	echo "    * $engine ..."
+	cat output/$engine.err | egrep "^[^ ]*\.(c|cc|cpp|h):$NUM[: ]" | sed -e "s!\(.c\|.cc\|.cpp\|.h\):\($NUM\): !\1 \2 !g" -e "s!\(.c\|-cc\|.cpp\|.h\):\($NUM\):$NUM: !\1 \2 !g" | sort -u >> $0.warnings
+done
 cat $0.warnings | norm_warnings | tee $0.normwarnings | parse_input
 #rm -f $0.warnings

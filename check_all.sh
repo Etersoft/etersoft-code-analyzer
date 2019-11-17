@@ -10,9 +10,8 @@ set_error()
 
 # build and check with all engines
 mkdir -p output || fatal
-for i in engines/* ; do
-    EN=$(basename $i .sh)
-    ./$i 2>output/$EN.err >output/$EN.log || set_error $EN
+for EN in $ENGINES ; do
+    engines/$EN 2>output/$EN.err >output/$EN.log || set_error $EN
 done
 
 mkdir -p state || fatal
